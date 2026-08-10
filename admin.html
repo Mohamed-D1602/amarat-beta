@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة | بوابة حي العمارات</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--petrol:#0F3D3E;--petrol-deep:#0A2C2D;--sand:#F4EEE3;--paper:#FDFBF5;--brick:#A94A32;--gold:#C9A227;--ink:#26221C;--muted:#6E675C;--line:#E2D9C8}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Almarai',sans-serif;background:var(--sand);color:var(--ink);line-height:1.8;min-height:100vh}
+h1,h2,h3{font-family:'Cairo',sans-serif}
+/* top bar */
+.bar{background:var(--petrol);color:#fff;padding:.8rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.bar .b-title{display:flex;align-items:center;gap:.6rem}
+.bar .mark{width:36px;height:36px;border-radius:8px;background:var(--gold);display:grid;place-items:center;color:var(--petrol-deep);font-family:'Cairo';font-weight:900}
+.bar strong{font-family:'Cairo';font-size:.95rem}
+.bar button{background:transparent;border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:99px;padding:.35rem 1rem;font-family:'Cairo';font-weight:700;font-size:.8rem;cursor:pointer}
+.bar button:hover{background:rgba(255,255,255,.12)}
+main{max-width:1000px;margin:0 auto;padding:1.5rem 1.25rem 4rem}
+/* login */
+.login-card{background:var(--paper);border:1px solid var(--line);border-top:5px solid var(--gold);border-radius:16px;max-width:420px;margin:8vh auto;padding:2.2rem;box-shadow:0 10px 30px rgba(38,34,28,.12)}
+.login-card h2{color:var(--petrol);text-align:center;margin-bottom:1.2rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-weight:700;font-size:.85rem;color:var(--petrol);margin-bottom:.3rem}
+.field input,select{width:100%;padding:.65rem .9rem;border:1.5px solid var(--line);border-radius:9px;background:#fff;font-family:'Almarai';font-size:.92rem}
+.field input:focus,select:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.btn{width:100%;background:var(--petrol);color:#fff;border:none;padding:.8rem;border-radius:10px;font-family:'Cairo';font-weight:800;font-size:1rem;cursor:pointer}
+.btn:hover{background:var(--petrol-deep)}
+.btn:disabled{opacity:.6}
+.msg{display:none;text-align:center;border-radius:10px;padding:.8rem;font-weight:700;margin-top:.9rem;font-size:.88rem}
+.msg.err{background:#FBEAE4;color:var(--brick)}
+.msg.ok{background:#E4F1E7;color:#256C3A}
+/* tabs */
+.tabs{display:flex;gap:.5rem;margin:1.2rem 0;flex-wrap:wrap}
+.tab{border:1.5px solid var(--line);background:var(--paper);border-radius:99px;padding:.45rem 1.3rem;font-family:'Cairo';font-weight:800;font-size:.88rem;cursor:pointer;color:var(--muted)}
+.tab.on{background:var(--petrol);color:#fff;border-color:var(--petrol)}
+.tab .cnt{background:var(--brick);color:#fff;border-radius:99px;font-size:.72rem;padding:0 .5rem;margin-inline-start:.3rem}
+/* request cards */
+.req{background:var(--paper);border:1px solid var(--line);border-inline-start:5px solid var(--gold);border-radius:12px;padding:1.1rem 1.3rem;margin-bottom:.9rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;align-items:center}
+.req .info strong{color:var(--petrol);font-family:'Cairo'}
+.req .info div{font-size:.85rem;color:var(--muted)}
+.req .acts{display:flex;gap:.5rem}
+.req .acts button{border:none;border-radius:9px;padding:.5rem 1.1rem;font-family:'Cairo';font-weight:800;font-size:.85rem;cursor:pointer}
+.ok-btn{background:#2E9E5B;color:#fff}
+.no-btn{background:var(--brick);color:#fff}
+.undo-btn{background:#E7E0D2;color:var(--muted)}
+.wa-note{background:#25D366;color:#06301C;border:none;border-radius:9px;padding:.5rem 1rem;font-family:'Cairo';font-weight:800;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.news-form{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:1.4rem;max-width:600px}
+.news-form textarea{width:100%;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:9px;font-family:'Almarai';font-size:.9rem;resize:vertical}
+.news-form textarea:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.news-item-admin{background:var(--paper);border:1px solid var(--line);border-inline-start:4px solid var(--gold);border-radius:10px;padding:.9rem 1.1rem;margin-bottom:.7rem;display:flex;justify-content:space-between;gap:1rem;align-items:center}
+.news-item-admin strong{color:var(--petrol)}
+.news-item-admin .del{background:var(--brick);color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-weight:700;cursor:pointer;font-size:.8rem}
+.bc-summary{background:#FFFDF4;border:1px solid var(--gold);border-radius:10px;padding:.7rem 1rem;font-family:'Cairo';font-weight:800;color:#8A6D12;font-size:.9rem;text-align:center}
+.bc-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.5rem .8rem;border-bottom:1px solid var(--line);font-size:.88rem}
+.bc-row:last-child{border-bottom:none}
+.news-form textarea{width:100%;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:9px;font-family:'Almarai';font-size:.9rem;resize:vertical}
+.empty{text-align:center;color:var(--muted);padding:2.5rem;background:var(--paper);border:1px dashed var(--line);border-radius:12px}
+/* street editor */
+.st-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.9rem}
+.st-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:1rem}
+.st-card h3{color:var(--petrol);font-size:1rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
+.st-card .saved{font-size:.7rem;color:#2E9E5B;opacity:0;transition:opacity .3s}
+.st-card .saved.show{opacity:1}
+.st-row{display:grid;grid-template-columns:26px 1fr;gap:.4rem;align-items:center;margin-bottom:.4rem;font-size:.85rem}
+.st-row select{padding:.35rem .5rem;font-size:.82rem}
+.s0{background:#EFE8D8}.s1{background:#FAEEC9}.s2{background:#DCF2E4}
+#panel{display:none}
+.hint{font-size:.8rem;color:var(--muted);text-align:center;margin-top:.6rem}
+.cfg-warn{background:#FBEAE4;color:var(--brick);border-radius:12px;padding:1rem 1.3rem;font-weight:700;margin:1rem 0;display:none}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="b-title"><span class="mark">ع</span><strong>لوحة إدارة بوابة حي العمارات</strong></div>
+  <button id="logoutBtn" style="display:none" onclick="doLogout()">تسجيل الخروج</button>
+</div>
+<main>
+  <div class="cfg-warn" id="cfgWarn">⚠️ لم يتم ضبط إعدادات Supabase بعد — افتح هذا الملف وضع SUPABASE_URL و SUPABASE_ANON_KEY في أعلى الكود</div>
+
+  <div class="login-card" id="loginCard">
+    <h2>🔐 دخول الإدارة</h2>
+    <div class="field"><label>البريد الإلكتروني</label><input id="email" type="email" dir="ltr" autocomplete="username"></div>
+    <div class="field"><label>كلمة المرور</label><input id="pass" type="password" dir="ltr" autocomplete="current-password"></div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">دخول</button>
+    <div class="msg err" id="loginErr">بيانات الدخول غير صحيحة</div>
+  </div>
+
+  <div id="panel">
+    <div class="tabs">
+      <button class="tab on" data-tab="pending">طلبات قيد المراجعة <span class="cnt" id="cntPending">0</span></button>
+      <button class="tab" data-tab="approved">المقبولون</button>
+      <button class="tab" data-tab="rejected">المرفوضون</button>
+      <button class="tab" data-tab="streets">⚡ حالة الشوارع</button>
+      <button class="tab" data-tab="reps">👤 ممثلو الشوارع</button>
+      <button class="tab" data-tab="reports">🚨 البلاغات</button>
+      <button class="tab" data-tab="certs">📜 الشهادات والخطابات</button>
+      <button class="tab" data-tab="news">📰 الأخبار</button>
+      <button class="tab" data-tab="broadcast">📢 رسالة جماعية</button>
+    </div>
+    <div id="reqList"></div>
+    <div id="stEditor" style="display:none">
+      <div class="st-grid" id="stGrid"></div>
+      <p class="hint">التغيير يُحفظ فوراً ويظهر لكل زوار الموقع خلال ثوانٍ</p>
+    </div>
+    <div id="repEditor" style="display:none">
+      <div class="st-grid" id="repGrid"></div>
+      <p class="hint">اكتب اسم الممثل ورقم هاتفه (بصيغة دولية مثل 447958289559) ثم اضغط حفظ</p>
+    </div>
+    <div id="reportsEditor" style="display:none">
+      <div id="reportsList"></div>
+      <p class="hint">غيّر حالة كل بلاغ: جديد ← جارٍ العمل ← تم الحل. عند اختيار "تم" يُسجَّل تاريخ الحل تلقائياً</p>
+    </div>
+    <div id="certsEditor" style="display:none">
+      <div id="certsList"></div>
+      <p class="hint">راجع كل طلب، ثم اضغط "جاهز + إشعار" لإرسال رسالة واتساب للمستفيد بأن مستنده جاهز للاستلام</p>
+    </div>
+    <div id="newsEditor" style="display:none">
+      <div class="news-form">
+        <h3 style="color:var(--petrol);margin-bottom:.8rem">➕ إضافة خبر جديد</h3>
+        <div class="field"><label>التصنيف</label>
+          <select id="nCat">
+            <option value="power">⚡ كهرباء</option>
+            <option value="clean">🧹 نظافة</option>
+            <option value="sec">🚨 أمن</option>
+            <option value="water">💧 مياه</option>
+          </select>
+        </div>
+        <div class="field"><label>العنوان (عربي) *</label><input id="nTitleAr" placeholder="مثال: عودة الكهرباء لشارع ٢١"></div>
+        <div class="field"><label>العنوان (إنجليزي) — 🌐 يُترجم تلقائياً عند الخروج من الحقل العربي</label><input id="nTitleEn" dir="ltr" placeholder="e.g. Power restored to Street 21"></div>
+        <div class="field"><label>التفاصيل (عربي)</label><textarea id="nBodyAr" rows="3"></textarea></div>
+        <div class="field"><label>التفاصيل (إنجليزي)</label><textarea id="nBodyEn" rows="3" dir="ltr"></textarea></div>
+        <div class="field"><label>التاريخ</label><input id="nDate" type="date"></div>
+        <button class="btn" onclick="addNews()">نشر الخبر</button>
+        <div class="msg ok" id="nOk">✓ تم نشر الخبر</div>
+      </div>
+      <div id="newsList" style="margin-top:1.5rem"></div>
+    </div>
+    <div id="broadcastEditor" style="display:none">
+      <div class="news-form">
+        <h3 style="color:var(--petrol);margin-bottom:.4rem">📢 إرسال رسالة جماعية عبر الواتساب</h3>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">اكتب الرسالة، اختر الفئة، ثم أرسلها لكل مستفيد بضغطة — أو انسخ كل الأرقام لعمل قائمة بث في الواتساب</p>
+        <div class="field"><label>إرسال إلى</label>
+          <select id="bcScope" onchange="bcRefresh()">
+            <option value="all">🌍 كل السكان</option>
+            <option value="street">🛣️ حسب الشارع</option>
+            <option value="building">🏙️ حسب المبنى</option>
+          </select>
+        </div>
+        <div class="field" id="bcStreetWrap" style="display:none"><label>اختر الشارع</label><select id="bcStreet" onchange="bcRefresh()"></select></div>
+        <div class="field" id="bcBldgWrap" style="display:none"><label>اختر المبنى</label><select id="bcBldg" onchange="bcRefresh()"></select></div>
+        <div class="field"><label>نص الرسالة *</label><textarea id="bcMsg" rows="4" placeholder="مثال: أهل حي العمارات الكرام، نود إعلامكم بأن..."></textarea></div>
+        <div class="bc-summary" id="bcSummary">٠ مستفيد</div>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.8rem">
+          <button class="btn" style="flex:1" onclick="bcStartSend()">📲 ابدأ الإرسال واحداً تلو الآخر</button>
+          <button class="btn" style="flex:1;background:var(--gold);color:var(--petrol-deep)" onclick="bcCopyNumbers()">📋 انسخ كل الأرقام</button>
+        </div>
+        <div class="msg ok" id="bcOk"></div>
+      </div>
+      <div id="bcList" style="margin-top:1.2rem"></div>
+    </div>
+  </div>
+</main>
+<script>
+// ================== CONFIG — paste your Supabase values here ==================
+const SUPABASE_URL = "https://ilzhdixqjlkgdqdhslpv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_cY5ymwG1u7y5hnFMKpNFug_Us4Gjm4D";
+// =============================================================================
+
+const configured = !SUPABASE_URL.includes("PASTE") && !SUPABASE_ANON_KEY.includes("PASTE");
+let sb = null;
+if (configured) sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+else document.getElementById('cfgWarn').style.display = 'block';
+
+const arabicNum = n => String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+const stName = n => 'شارع ' + arabicNum(n);
+const UTIL = [['p','⚡'],['w','💧'],['c','🧹']];
+const STATES = ['قيد الانتظار','جارٍ العمل','تم ✓'];
+
+// ---------------- Auth ----------------
+async function doLogin(){
+  if(!sb) return;
+  const btn=document.getElementById('loginBtn'), err=document.getElementById('loginErr');
+  err.style.display='none'; btn.disabled=true; btn.textContent='جاري الدخول...';
+  const {error} = await sb.auth.signInWithPassword({
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('pass').value
+  });
+  btn.disabled=false; btn.textContent='دخول';
+  if(error){ err.style.display='block'; return; }
+  enterPanel();
+}
+async function doLogout(){ await sb.auth.signOut(); location.reload(); }
+async function checkSession(){
+  if(!sb) return;
+  const {data:{session}} = await sb.auth.getSession();
+  if(session) enterPanel();
+}
+function enterPanel(){
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('panel').style.display='block';
+  document.getElementById('logoutBtn').style.display='inline-block';
+  loadRequests('pending'); loadStreets();
+}
+
+// ---------------- Tabs ----------------
+let curTab='pending';
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on');
+  curTab=t.getAttribute('data-tab');
+  const streets = curTab==='streets', reps = curTab==='reps', reports = curTab==='reports', news = curTab==='news', broadcast = curTab==='broadcast', certs = curTab==='certs';
+  document.getElementById('stEditor').style.display = streets?'block':'none';
+  document.getElementById('repEditor').style.display = reps?'block':'none';
+  document.getElementById('reportsEditor').style.display = reports?'block':'none';
+  document.getElementById('newsEditor').style.display = news?'block':'none';
+  document.getElementById('broadcastEditor').style.display = broadcast?'block':'none';
+  document.getElementById('certsEditor').style.display = certs?'block':'none';
+  document.getElementById('reqList').style.display = (streets||reps||reports||news||broadcast||certs)?'none':'block';
+  if(streets) loadStreets();
+  else if(reps) loadReps();
+  else if(reports) loadReports();
+  else if(news) loadNews();
+  else if(broadcast) loadBroadcast();
+  else if(certs) loadCerts();
+  else loadRequests(curTab);
+}));
+
+// ---------------- Requests ----------------
+async function loadRequests(status){
+  const list=document.getElementById('reqList');
+  list.innerHTML='<div class="empty">جاري التحميل...</div>';
+  const {data,error} = await sb.from('join_requests').select('*').eq('status',status).order('created_at',{ascending:false});
+  if(error){ list.innerHTML='<div class="empty">خطأ في التحميل: '+error.message+'</div>'; return; }
+  // pending badge count (always refresh)
+  const {count} = await sb.from('join_requests').select('*',{count:'exact',head:true}).eq('status','pending');
+  document.getElementById('cntPending').textContent = arabicNum(count||0);
+  if(!data.length){ list.innerHTML='<div class="empty">لا توجد طلبات هنا 🎉</div>'; return; }
+  list.innerHTML='';
+  data.forEach(r=>{
+    const d=new Date(r.created_at);
+    const el=document.createElement('div');
+    el.className='req';
+    el.innerHTML='<div class="info"><strong>'+r.name+'</strong>'+
+      '<div>'+stName(r.street)+' · '+(r.type||'—')+(r.household_size?' · 👥 '+arabicNum(r.household_size):'')+'</div>'+
+      '<div dir="ltr" style="text-align:right">'+r.phone+' · '+d.toLocaleDateString('ar-EG')+'</div></div>'+
+      '<div class="acts" id="acts'+r.id+'"></div>';
+    const acts=el.querySelector('.acts');
+    const wphone=(r.phone||'').replace(/[^\d]/g,'');
+    if(status==='pending'){
+      acts.innerHTML='<button class="ok-btn" onclick="approveAndNotify('+r.id+',\''+wphone+'\','+r.street+')">✓ قبول</button>'+
+                     '<button class="no-btn" onclick="setStatus('+r.id+',\'rejected\')">✕ رفض</button>';
+    }else if(status==='approved'){
+      acts.innerHTML='<a class="wa-note" href="https://wa.me/'+wphone+'?text='+encodeURIComponent('✅ أهلاً بك في حي العمارات! تمت الموافقة على طلبك وأنت الآن ضمن سكان '+stName(r.street)+' في البوابة الرسمية.')+'" target="_blank">💬 إشعار القبول</a>'+
+                     '<button class="undo-btn" onclick="setStatus('+r.id+',\'pending\')">↩ إرجاع</button>';
+    }else{
+      acts.innerHTML='<button class="undo-btn" onclick="setStatus('+r.id+',\'pending\')">↩ إرجاع للمراجعة</button>';
+    }
+    list.appendChild(el);
+  });
+}
+async function approveAndNotify(id,phone,street){
+  const {error} = await sb.from('join_requests').update({status:'approved'}).eq('id',id);
+  if(error){ alert('خطأ: '+error.message); return; }
+  // open WhatsApp to congratulate the resident
+  const msg='✅ أهلاً بك في حي العمارات! تمت الموافقة على طلبك وأنت الآن ضمن سكان '+stName(street)+' في البوابة الرسمية.';
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  loadRequests(curTab);
+}
+async function setStatus(id,status){
+  const {error} = await sb.from('join_requests').update({status}).eq('id',id);
+  if(error){ alert('خطأ: '+error.message); return; }
+  loadRequests(curTab);
+}
+
+// ---------------- Street status editor ----------------
+async function loadStreets(){
+  const grid=document.getElementById('stGrid');
+  grid.innerHTML='';
+  const {data,error} = await sb.from('street_status').select('*').order('street');
+  if(error){ grid.innerHTML='<div class="empty">خطأ: '+error.message+'</div>'; return; }
+  const map={}; (data||[]).forEach(r=>map[r.street]=r);
+  for(let n=1;n<=61;n+=2){
+    const r=map[n]||{street:n,p:0,w:0,c:0};
+    const card=document.createElement('div');
+    card.className='st-card';
+    let rows='';
+    UTIL.forEach(([k,ic])=>{
+      rows+='<div class="st-row"><span>'+ic+'</span><select class="s'+r[k]+'" data-st="'+n+'" data-k="'+k+'">'+
+        STATES.map((s,i)=>'<option value="'+i+'"'+(i===r[k]?' selected':'')+'>'+s+'</option>').join('')+
+        '</select></div>';
+    });
+    card.innerHTML='<h3>'+stName(n)+'<span class="saved" id="sv'+n+'">✓ حُفظ</span></h3>'+rows;
+    grid.appendChild(card);
+  }
+  grid.querySelectorAll('select').forEach(sel=>sel.addEventListener('change',async e=>{
+    const st=Number(e.target.getAttribute('data-st'));
+    const k=e.target.getAttribute('data-k');
+    const v=Number(e.target.value);
+    e.target.className='s'+v;
+    const upd={street:st,updated_at:new Date().toISOString()}; upd[k]=v;
+    const {error}=await sb.from('street_status').upsert(upd,{onConflict:'street'});
+    if(error){ alert('خطأ في الحفظ: '+error.message); return; }
+    const sv=document.getElementById('sv'+st);
+    sv.classList.add('show'); setTimeout(()=>sv.classList.remove('show'),1500);
+  }));
+}
+
+// ---------------- Reps editor ----------------
+async function loadReps(){
+  const grid=document.getElementById('repGrid');
+  grid.innerHTML='';
+  const {data} = await sb.from('street_reps').select('*');
+  const map={}; (data||[]).forEach(r=>map[r.street]=r);
+  for(let n=1;n<=61;n+=2){
+    const r=map[n]||{rep_name:'',rep_phone:''};
+    const card=document.createElement('div');
+    card.className='st-card';
+    card.innerHTML='<h3>'+stName(n)+'<span class="saved" id="rsv'+n+'">✓ حُفظ</span></h3>'+
+      '<div class="field" style="margin-bottom:.5rem"><input id="rn'+n+'" placeholder="اسم الممثل" value="'+(r.rep_name||'')+'"></div>'+
+      '<div class="field" style="margin-bottom:.5rem"><input id="rp'+n+'" dir="ltr" placeholder="447958289559" value="'+(r.rep_phone||'')+'"></div>'+
+      '<button class="btn" style="padding:.45rem;font-size:.85rem" onclick="saveRep('+n+')">حفظ</button>';
+    grid.appendChild(card);
+  }
+}
+async function saveRep(n){
+  const name=document.getElementById('rn'+n).value.trim();
+  const phone=document.getElementById('rp'+n).value.trim().replace(/[^\d]/g,'');
+  if(!name||!phone){ if(!confirm('حذف ممثل '+stName(n)+'؟')) return; await sb.from('street_reps').delete().eq('street',n); }
+  else { await sb.from('street_reps').upsert({street:n,rep_name:name,rep_phone:phone},{onConflict:'street'}); }
+  const sv=document.getElementById('rsv'+n);
+  sv.classList.add('show'); setTimeout(()=>sv.classList.remove('show'),1500);
+}
+
+// ---------------- Reports ----------------
+async function loadReports(){
+  const list=document.getElementById('reportsList');
+  list.innerHTML='<div class="empty">جاري التحميل...</div>';
+  const {data,error}=await sb.from('reports').select('*').order('reported_at',{ascending:false});
+  if(error){list.innerHTML='<div class="empty">خطأ: '+error.message+'</div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty">لا توجد بلاغات</div>';return;}
+  const stName2=n=>n?('شارع '+arabicNum(n)):'—';
+  const SL={new:'🔴 جديد',progress:'🟡 جارٍ العمل',done:'🟢 تم الحل'};
+  list.innerHTML='';
+  data.forEach(r=>{
+    const d=new Date(r.reported_at);
+    const el=document.createElement('div');
+    el.className='req';
+    el.innerHTML='<div class="info"><strong>'+r.ptype+' · '+stName2(r.street)+'</strong>'+
+      '<div>'+r.descr+'</div>'+
+      '<div>📅 '+d.toLocaleDateString('ar-EG')+(r.resolved_at?' · ✅ '+new Date(r.resolved_at).toLocaleDateString('ar-EG'):'')+'</div></div>'+
+      '<div class="acts"><select onchange="setReportStatus('+r.id+',this.value)">'+
+      ['new','progress','done'].map(s=>'<option value="'+s+'"'+(r.status===s?' selected':'')+'>'+SL[s]+'</option>').join('')+
+      '</select></div>';
+    list.appendChild(el);
+  });
+}
+async function setReportStatus(id,status){
+  const upd={status};
+  upd.resolved_at = status==='done' ? new Date().toISOString() : null;
+  const {error}=await sb.from('reports').update(upd).eq('id',id);
+  if(error){alert('خطأ: '+error.message);return;}
+  loadReports();
+}
+
+// ---------------- News ----------------
+async function loadNews(){
+  wireTranslate();
+  const list=document.getElementById('newsList');
+  list.innerHTML='<div class="empty">جاري التحميل...</div>';
+  const {data,error}=await sb.from('news').select('*').order('news_date',{ascending:false});
+  if(error){list.innerHTML='<div class="empty">خطأ: '+error.message+'</div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty">لا توجد أخبار — أضف أول خبر بالأعلى</div>';return;}
+  const CATIC={power:'⚡',clean:'🧹',sec:'🚨',water:'💧'};
+  list.innerHTML='<h3 style="color:var(--petrol);margin-bottom:.6rem">الأخبار المنشورة</h3>';
+  data.forEach(n=>{
+    const el=document.createElement('div');
+    el.className='news-item-admin';
+    el.innerHTML='<div><strong>'+(CATIC[n.cat]||'📰')+' '+n.title_ar+'</strong>'+
+      '<div style="font-size:.8rem;color:var(--muted)">'+new Date(n.news_date).toLocaleDateString('ar-EG')+'</div></div>'+
+      '<button class="del" onclick="delNews('+n.id+')">🗑 حذف</button>';
+    list.appendChild(el);
+  });
+}
+async function addNews(){
+  const titleAr=document.getElementById('nTitleAr').value.trim();
+  if(!titleAr){alert('العنوان بالعربي مطلوب');return;}
+  const rec={
+    cat:document.getElementById('nCat').value,
+    title_ar:titleAr,
+    title_en:document.getElementById('nTitleEn').value.trim()||titleAr,
+    body_ar:document.getElementById('nBodyAr').value.trim(),
+    body_en:document.getElementById('nBodyEn').value.trim(),
+    news_date:document.getElementById('nDate').value||new Date().toISOString().slice(0,10)
+  };
+  const {error}=await sb.from('news').insert(rec);
+  if(error){alert('خطأ: '+error.message);return;}
+  ['nTitleAr','nTitleEn','nBodyAr','nBodyEn'].forEach(id=>document.getElementById(id).value='');
+  const ok=document.getElementById('nOk');ok.style.display='block';setTimeout(()=>ok.style.display='none',2500);
+  loadNews();
+}
+// Auto-translate Arabic → English (free MyMemory API, no key)
+async function autoTranslate(arId,enId){
+  const ar=document.getElementById(arId).value.trim();
+  const enEl=document.getElementById(enId);
+  if(!ar||enEl.value.trim())return; // don't overwrite manual English
+  enEl.placeholder='...جاري الترجمة';
+  try{
+    const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(ar)+'&langpair=ar|en');
+    const data=await res.json();
+    if(data&&data.responseData&&data.responseData.translatedText){
+      enEl.value=data.responseData.translatedText;
+    }
+  }catch(e){}
+  enEl.placeholder='';
+}
+function wireTranslate(){
+  const t=document.getElementById('nTitleAr'),b=document.getElementById('nBodyAr');
+  if(t&&!t.dataset.wired){t.dataset.wired=1;t.addEventListener('blur',()=>autoTranslate('nTitleAr','nTitleEn'));}
+  if(b&&!b.dataset.wired){b.dataset.wired=1;b.addEventListener('blur',()=>autoTranslate('nBodyAr','nBodyEn'));}
+}
+async function delNews(id){
+  if(!confirm('حذف هذا الخبر؟'))return;
+  const {error}=await sb.from('news').delete().eq('id',id);
+  if(error){alert('خطأ: '+error.message);return;}
+  loadNews();
+}
+
+// ---------------- Broadcast (mass WhatsApp) ----------------
+let bcRecipients=[]; // {name,phone}
+async function loadBroadcast(){
+  // fetch all approved residents with phones
+  const {data,error}=await sb.from('join_requests').select('name,phone,street,bldg').eq('status','approved');
+  if(error){document.getElementById('bcList').innerHTML='<div class="empty">خطأ: '+error.message+'</div>';return;}
+  window._bcAll=data||[];
+  // populate street + building selects
+  const streets=[...new Set((data||[]).map(r=>r.street))].sort((a,b)=>a-b);
+  const bldgs=[...new Set((data||[]).filter(r=>r.bldg&&r.bldg!=='—').map(r=>r.bldg))].sort();
+  document.getElementById('bcStreet').innerHTML=streets.map(s=>'<option value="'+s+'">شارع '+arabicNum(s)+'</option>').join('');
+  document.getElementById('bcBldg').innerHTML=bldgs.map(b=>'<option value="'+b+'">'+b+'</option>').join('');
+  bcRefresh();
+}
+function bcRefresh(){
+  const scope=document.getElementById('bcScope').value;
+  document.getElementById('bcStreetWrap').style.display=scope==='street'?'block':'none';
+  document.getElementById('bcBldgWrap').style.display=scope==='building'?'block':'none';
+  let list=window._bcAll||[];
+  if(scope==='street'){const s=Number(document.getElementById('bcStreet').value);list=list.filter(r=>r.street===s);}
+  else if(scope==='building'){const b=document.getElementById('bcBldg').value;list=list.filter(r=>r.bldg===b);}
+  bcRecipients=list.filter(r=>r.phone).map(r=>({name:r.name,phone:(r.phone||'').replace(/[^\d]/g,'')}));
+  document.getElementById('bcSummary').textContent=arabicNum(bcRecipients.length)+' مستفيد سيصلهم الرابط';
+  // preview list
+  const box=document.getElementById('bcList');
+  box.innerHTML = bcRecipients.length
+    ? '<h3 style="color:var(--petrol);font-size:.95rem;margin-bottom:.5rem">المستفيدون ('+arabicNum(bcRecipients.length)+')</h3>'+
+      bcRecipients.map((r,i)=>'<div class="bc-row"><span>'+arabicNum(i+1)+'. '+r.name+'</span><span dir="ltr" style="color:var(--muted);font-size:.8rem">'+r.phone+'</span></div>').join('')
+    : '<div class="empty">لا يوجد مستفيدون في هذا النطاق</div>';
+}
+function bcStartSend(){
+  const msg=document.getElementById('bcMsg').value.trim();
+  if(!msg){alert('اكتب نص الرسالة أولاً');return;}
+  if(!bcRecipients.length){alert('لا يوجد مستفيدون');return;}
+  // open first, then guide admin through the rest
+  let idx=0;
+  const sendNext=()=>{
+    if(idx>=bcRecipients.length)return;
+    const r=bcRecipients[idx];
+    window.open('https://wa.me/'+r.phone+'?text='+encodeURIComponent(msg),'_blank');
+    idx++;
+    const ok=document.getElementById('bcOk');
+    ok.style.display='block';
+    ok.innerHTML='📲 فُتح واتساب للمستفيد '+arabicNum(idx)+' من '+arabicNum(bcRecipients.length)+'. '+
+      (idx<bcRecipients.length?'<button class="btn" style="margin-top:.5rem;padding:.4rem 1rem" onclick="window._bcNext()">التالي ←</button>':'✅ انتهى الإرسال');
+  };
+  window._bcNext=sendNext;
+  sendNext();
+}
+function bcCopyNumbers(){
+  if(!bcRecipients.length){alert('لا يوجد مستفيدون');return;}
+  const nums=bcRecipients.map(r=>'+'+r.phone).join('\n');
+  navigator.clipboard.writeText(nums).then(()=>{
+    const ok=document.getElementById('bcOk');ok.style.display='block';
+    ok.textContent='📋 تم نسخ '+arabicNum(bcRecipients.length)+' رقم — الصقها في قائمة بث جديدة بالواتساب';
+    setTimeout(()=>ok.style.display='none',4000);
+  }).catch(()=>alert('تعذّر النسخ — انسخ يدوياً:\n'+nums));
+}
+
+// ---------------- Certificates / letters ----------------
+async function loadCerts(){
+  const list=document.getElementById('certsList');
+  list.innerHTML='<div class="empty">جاري التحميل...</div>';
+  const {data,error}=await sb.from('cert_requests').select('*').order('created_at',{ascending:false});
+  if(error){list.innerHTML='<div class="empty">خطأ: '+error.message+'</div>';return;}
+  if(!data.length){list.innerHTML='<div class="empty">لا توجد طلبات</div>';return;}
+  const stName2=n=>n?('شارع '+arabicNum(n)):'—';
+  const SL={pending:'🟡 قيد المراجعة',ready:'🟢 جاهز',rejected:'🔴 مرفوض'};
+  list.innerHTML='';
+  data.forEach(r=>{
+    const d=new Date(r.created_at);
+    const wphone=(r.phone||'').replace(/[^\d]/g,'');
+    const el=document.createElement('div');
+    el.className='req';
+    el.innerHTML='<div class="info"><strong>'+r.doc_type+' — '+r.name+'</strong>'+
+      '<div>'+stName2(r.street)+(r.purpose?' · '+r.purpose:'')+'</div>'+
+      '<div dir="ltr" style="text-align:right">'+r.phone+' · '+d.toLocaleDateString('ar-EG')+' · '+SL[r.status]+'</div></div>'+
+      '<div class="acts">'+
+        (r.status!=='ready'?'<button class="ok-btn" onclick="certReady('+r.id+',\''+wphone+'\',\''+encodeURIComponent(r.doc_type)+'\')">✓ جاهز + إشعار</button>':
+         '<a class="wa-note" href="https://wa.me/'+wphone+'?text='+encodeURIComponent('✅ مستندك ('+r.doc_type+') جاهز للاستلام من لجنة حي العمارات. برجاء التواصل لتحديد موعد الاستلام.')+'" target="_blank">💬 إعادة الإشعار</a>')+
+        (r.status!=='rejected'?'<button class="no-btn" onclick="certStatus('+r.id+',\'rejected\')">✕</button>':'<button class="undo-btn" onclick="certStatus('+r.id+',\'pending\')">↩</button>')+
+      '</div>';
+    list.appendChild(el);
+  });
+}
+async function certReady(id,phone,docTypeEnc){
+  const {error}=await sb.from('cert_requests').update({status:'ready',ready_at:new Date().toISOString()}).eq('id',id);
+  if(error){alert('خطأ: '+error.message);return;}
+  const docType=decodeURIComponent(docTypeEnc);
+  const msg='✅ مستندك ('+docType+') جاهز للاستلام من لجنة حي العمارات. برجاء التواصل لتحديد موعد الاستلام.';
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  loadCerts();
+}
+async function certStatus(id,status){
+  const {error}=await sb.from('cert_requests').update({status}).eq('id',id);
+  if(error){alert('خطأ: '+error.message);return;}
+  loadCerts();
+}
+
+checkSession();
+</script>
+</body>
+</html>
