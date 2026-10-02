@@ -1,0 +1,18 @@
+{
+  "name": "بوابة حي العمارات — Al Amarat Portal",
+  "short_name": "العمارات",
+  "description": "البوابة الرسمية لحي العمارات — إعلانات، حالة الشوارع، بلاغات، وتسجيل السكان",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#0A2C2D",
+  "theme_color": "#0F3D3E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
